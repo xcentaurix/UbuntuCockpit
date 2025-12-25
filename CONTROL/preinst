@@ -1,0 +1,41 @@
+#!/bin/sh
+
+arch=armhf
+
+base_dir=/data
+if [ -d $base_dir ]; then
+	ubuntu=$base_dir/ubuntu
+	# Remove existing Ubuntu installation
+
+	# Unmount all mount points under $ubuntu
+	mountpoints=$(mount | grep "$ubuntu" | awk '{print $3}' | sort -r)
+	for mnt in $mountpoints; do
+		umount "$mnt" || umount -l "$mnt"
+	done
+
+	# Double-check nothing is mounted
+	if mount | grep -q "$ubuntu"; then
+		echo "Some mount points under $ubuntu could not be unmounted."
+		mount | grep "$ubuntu"
+		exit
+	fi
+
+	rm -rf $ubuntu
+
+    # Download and unpack Ubuntu
+	mkdir $ubuntu
+	cd $ubuntu
+	url=https://github.com/xcentaurix/UbuntuCockpit/releases/download/25.10/ubuntu-base-25.10-base-$arch.tar.gz
+	wget $url -O ubuntu-base-25.10-base-$arch.tar.gz
+	tar -xzvf ubuntu-base-25.10-base-$arch.tar.gz
+	rm ubuntu-base-25.10-base-$arch.tar.gz
+
+	echo ""
+	echo "Ubuntu subsystem successfully installed in $ubuntu."
+	echo ""
+else
+	echo ""
+	echo "Base dir $base_dir for Ubuntu subsystem does not exist."
+	echo ""
+fi
+exit 0

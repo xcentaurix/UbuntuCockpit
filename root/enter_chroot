@@ -1,0 +1,16 @@
+#!/bin/bash
+echo entering chroot
+CHROOT="/data/ubuntu"
+cd $CHROOT/root
+
+$CHROOT/root/mount_chroot
+
+# Cleanup function
+cleanup() {
+    $CHROOT/root/umount_chroot
+}
+
+# execute when exiting..
+trap cleanup EXIT
+
+$CHROOT/root/run_chroot

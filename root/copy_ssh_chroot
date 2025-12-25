@@ -1,0 +1,8 @@
+#!/bin/sh
+ROOT=/data/ubuntu/root
+mkdir -p $ROOT
+cp -avr $HOME/.ssh $ROOT
+chmod 700 $ROOT/.ssh
+chmod 600 $ROOT/.ssh/*
+chmod 644 $ROOT/.ssh/*.pub
+chmod 644 $ROOT/.ssh/known_hosts
