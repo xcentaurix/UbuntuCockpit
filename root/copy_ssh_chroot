@@ -1,0 +1,14 @@
+#!/bin/sh
+DATA=/data
+ROOT=$DATA/ubuntu/root
+mkdir -p $ROOT
+if [ ! -d $DATA/.ssh ]; then
+    echo "No .ssh directory found in $DATA, skipping copy."
+    exit 0
+fi
+cp -avr $DATA/.ssh $ROOT
+chmod 700 $ROOT/.ssh
+chmod 600 $ROOT/.ssh/*
+chmod 644 $ROOT/.ssh/*.pub
+chmod 644 $ROOT/.ssh/known_hosts
+

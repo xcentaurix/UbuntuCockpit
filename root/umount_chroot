@@ -1,0 +1,9 @@
+#!/bin/bash
+echo umounting...
+CHROOT=/data/ubuntu
+umount -f "$CHROOT/dev/pts"
+umount -f "$CHROOT/dev"
+umount -f "$CHROOT/proc"
+umount -f "$CHROOT/sys"
+umount -f "$CHROOT/run"
+umount -f "$CHROOT/root/git"
