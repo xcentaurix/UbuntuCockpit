@@ -3,6 +3,14 @@ echo mounting...
 
 CHROOT=/data/ubuntu
 
+# read installation dir
+if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+    CHROOT=$base_dir/ubuntu
+else
+    echo "Config file not found, using: $CHROOT"
+fi
+
 mount --bind /dev "$CHROOT/dev"
 mount --bind /proc "$CHROOT/proc"
 mount --bind /sys "$CHROOT/sys"

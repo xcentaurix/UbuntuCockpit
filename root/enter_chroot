@@ -1,8 +1,16 @@
 #!/bin/bash
 echo entering chroot
 CHROOT="/data/ubuntu"
-cd $CHROOT/root
 
+# read installation dir
+if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+    CHROOT=$base_dir/ubuntu
+else
+    echo "Config file not found, using: $CHROOT"
+fi
+
+cd $CHROOT/root
 $CHROOT/root/mount_chroot
 
 # Cleanup function
