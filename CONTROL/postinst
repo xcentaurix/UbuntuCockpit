@@ -13,6 +13,11 @@ else
     echo "Config file not found, using: $CHROOT_DIR"
 fi
 
+# copy cfg file to /etc/enigma2
+if [ ! -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    cp $PLUGIN_DIR/cfg/ubuntucockpit.cfg /etc/enigma2/.
+fi
+
 # Copy bash scripts
 cp $PLUGIN_DIR/root/*_chroot $CHROOT_DIR/root/.
 chmod +x $CHROOT_DIR/root/*_chroot

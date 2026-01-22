@@ -1,7 +1,8 @@
 #!/bin/bash
 echo mounting...
 
-CHROOT=/data/ubuntu
+base_dir=/data
+CHROOT=$base_dir/ubuntu
 
 # read installation dir
 if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
@@ -17,7 +18,7 @@ mount --bind /sys "$CHROOT/sys"
 mount --bind /run "$CHROOT/run"
 
 mkdir -p $CHROOT/root/git
-mount --bind /data/git "$CHROOT/root/git"
+mount --bind $base_dir/git "$CHROOT/root/git"
 
 if [ ! -d "$CHROOT/dev/pts" ]; then
 	mkdir "$CHROOT/dev/pts"
