@@ -6,6 +6,10 @@ UbuntuCockpit is a Ubuntu chroot subsystem for Enigma2 based settop boxes. It pr
 ## Use Case
 One popular use case is: Development environment including git on the open settopbox.
 
+
+## Prerequisite
+- Define installation directory in /etc/enigma2/ubuntucockpit.cfg, a one-liner like: /media/usb
+
 ## Usage
 - To enter the ubuntu subsystem open a telnet session and enter the command: ubuntu
 - To leave the ubuntu subsystem enter the command: exit

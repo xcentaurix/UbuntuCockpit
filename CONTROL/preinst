@@ -1,8 +1,14 @@
 #!/bin/sh
 
 arch=armhf
+base_dir="/data"
 
-base_dir=/data
+if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+else
+    echo "Config file not found, using: $base_dir"
+fi
+
 if [ -d $base_dir ]; then
 	ubuntu=$base_dir/ubuntu
 	# Remove existing Ubuntu installation
@@ -20,9 +26,15 @@ if [ -d $base_dir ]; then
 		exit
 	fi
 
-	rm -rf $ubuntu
+	# remove previous ubuntu installation
+	if [ -L "$ubuntu" ]; then
+		# If it's a symlink, remove the target directory first
+		target=$(readlink -f "$ubuntu")
+		[ -d "$target" ] && rm -rf "$target"
+	fi
+	rm -rf "$ubuntu"  # Remove the directory or symlink
 
-    # Download and unpack Ubuntu
+        # Download and unpack Ubuntu
 	mkdir $ubuntu
 	cd $ubuntu
 	url=https://github.com/xcentaurix/UbuntuCockpit/releases/download/25.10/ubuntu-base-25.10-base-$arch.tar.gz

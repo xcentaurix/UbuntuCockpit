@@ -5,9 +5,17 @@ CHROOT_DIR=/data/ubuntu
 VENV_DIR=/root/venv
 PLUGIN_DIR=/usr/lib/enigma2/python/Plugins/SystemPlugins/UbuntuCockpit
 
+# read installation dir
+if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+    CHROOT_DIR=$base_dir/ubuntu
+else
+    echo "Config file not found, using: $CHROOT_DIR"
+fi
+
 # Copy bash scripts
 cp $PLUGIN_DIR/root/*_chroot $CHROOT_DIR/root/.
-chmod +x /data/ubuntu/root/*_chroot
+chmod +x $CHROOT_DIR/root/*_chroot
 
 cp $PLUGIN_DIR/lib/getrandom_stub.so $CHROOT_DIR/usr/lib/.
 chmod +x $CHROOT_DIR/usr/lib/getrandom_stub.so
@@ -85,6 +93,7 @@ chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
 #!/bin/bash
 export PATH=$PATH:/root/git/tools
 export PS1='(chroot) \u@\h:\w\$ '
+source ~/venv/bin/activate
 cd /root/git
 EOF
 
