@@ -1,5 +1,5 @@
 #!/bin/sh
-ROOT=$DATA/ubuntu/root
+ROOT=/data/ubuntu/root
 
 # read installation dir
 if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
@@ -9,12 +9,9 @@ else
     echo "Config file not found, using: $ROOT"
 fi
 
-mkdir -p $ROOT
-if [ ! -d ~/.ssh ]; then
-    echo "No .ssh directory found in home dir, skipping copy."
-    exit 0
-fi
-cp -avr ~/.ssh $ROOT
+mkdir -p $ROOT/.ssh
+
+cp -avr $base_dir/.ssh $ROOT
 if [ ! -z "$(ls -A $ROOT/.ssh)" ]; then
     chmod 700 $ROOT/.ssh
     chmod 600 $ROOT/.ssh/*
