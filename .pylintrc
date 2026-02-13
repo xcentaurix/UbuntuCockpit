@@ -110,7 +110,8 @@ disable=
     redefined-variable-type,
     no-member,
     no-name-in-module,
-    global-statement
+    global-statement,
+    pointless-string-statement
 
 
 [REPORTS]
