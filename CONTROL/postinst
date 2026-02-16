@@ -95,11 +95,6 @@ chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
   # .bash_profile
   mkdir -p /root
 
-  # install pylint, flake8
-  ~/bin/venv/activate
-  pip install pylint
-  pip install flake8
-
   # create .bash_profile
   tee /root/.bash_profile > /dev/null << 'EOF'
 #!/bin/bash
@@ -112,6 +107,12 @@ EOF
   chmod +x /root/.bash_profile
 
   ln -s /bin/python3 /bin/python
+"
+
+# install pylint and flake8
+chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
+  pip install pylint
+  pip install flake8
 "
 
 # git
