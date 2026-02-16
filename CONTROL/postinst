@@ -109,10 +109,10 @@ EOF
   ln -s /bin/python3 /bin/python
 "
 
-# install pylint and flake8
+# install pylint and flake8 inside the venv
 chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
-  pip install pylint
-  pip install flake8
+  source $VENV_DIR/bin/activate
+  pip install pylint flake8
 "
 
 # git
