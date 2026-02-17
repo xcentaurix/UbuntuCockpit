@@ -5,17 +5,26 @@ CHROOT_DIR=/data/ubuntu
 VENV_DIR=/root/venv
 PLUGIN_DIR=/usr/lib/enigma2/python/Plugins/SystemPlugins/UbuntuCockpit
 
+# copy cfg file to /etc/enigma2
+if [ ! -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    cp $PLUGIN_DIR/cfg/ubuntucockpit.cfg /etc/enigma2/.
+fi
+
 # read installation dir
 if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
     read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
     CHROOT_DIR=$base_dir/ubuntu
-else
-    echo "Config file not found, using: $CHROOT_DIR"
 fi
 
-# copy cfg file to /etc/enigma2
-if [ ! -f /etc/enigma2/ubuntucockpit.cfg ]; then
-    cp $PLUGIN_DIR/cfg/ubuntucockpit.cfg /etc/enigma2/.
+echo "Using CHROOT_DIR: $CHROOT_DIR"
+
+if [ -d $CHROOT_DIR ]; then
+    # create ubuntu cmd
+    if [ ! -L /bin/ubuntu ]; then
+        ln -s $CHROOT_DIR/root/enter_chroot /bin/ubuntu
+    fi
+    echo "Ubuntu subsystem already exists in $CHROOT_DIR, skipping installation."
+    exit 0
 fi
 
 # Copy bash scripts
@@ -77,10 +86,9 @@ chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
     python3 \
     python3-venv \
     python3-pip \
-    # python3-dev \
-    build-essential \
-    libssl-dev \
-    libffi-dev
+    # build-essential \
+    # libssl-dev \
+    # libffi-dev
 
   DEBIAN_FRONTEND=noninteractive apt install -y \
     git \
@@ -139,6 +147,12 @@ if [ -f /bin/ubuntu ]; then
 	rm /bin/ubuntu
 fi
 ln -s $CHROOT_DIR/root/enter_chroot /bin/ubuntu
+
+# install pylint and flake8
+chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
+  pip install pylint
+  pip install flake8
+"
 
 echo "***********************************"
 echo "*          UbuntuCockpit          *"
