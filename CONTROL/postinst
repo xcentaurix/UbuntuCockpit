@@ -18,7 +18,7 @@ fi
 
 echo "Using CHROOT_DIR: $CHROOT_DIR"
 
-if [ -d $CHROOT_DIR ]; then
+if [ -f $CHROOT_DIR/root/enter_chroot ]; then
     # create ubuntu cmd
     if [ ! -L /bin/ubuntu ]; then
         ln -s $CHROOT_DIR/root/enter_chroot /bin/ubuntu
@@ -86,11 +86,6 @@ chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
     python3 \
     python3-venv \
     python3-pip \
-    # build-essential \
-    # libssl-dev \
-    # libffi-dev
-
-  DEBIAN_FRONTEND=noninteractive apt install -y \
     git \
     vim \
     gettext \
@@ -109,7 +104,11 @@ chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
 export PATH=$PATH:/root/git/tools
 export PS1='(chroot) \u@\h:\w\$ '
 source ~/venv/bin/activate
-cd /root/git
+if [ -d /root/git/dev ]; then
+    cd /root/git/dev
+else
+    cd ~
+fi
 EOF
 
   chmod +x /root/.bash_profile
@@ -150,6 +149,7 @@ ln -s $CHROOT_DIR/root/enter_chroot /bin/ubuntu
 
 # install pylint and flake8
 chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
+  source ~/venv/bin/activate
   pip install pylint
   pip install flake8
 "

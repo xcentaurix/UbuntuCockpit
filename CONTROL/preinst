@@ -9,9 +9,8 @@ else
     echo "Config file not found, using: $base_dir"
 fi
 
-if [ ! -d $base_dir ]; then
-	ubuntu=$base_dir/ubuntu
-
+ubuntu=$base_dir/ubuntu
+if [ ! -d $ubuntu ]; then
 	mkdir $ubuntu
 	cd $ubuntu
 	url=https://github.com/xcentaurix/UbuntuCockpit/releases/download/25.10/ubuntu-base-25.10-base-$arch.tar.gz
@@ -19,12 +18,8 @@ if [ ! -d $base_dir ]; then
 	tar -xzvf ubuntu-base-25.10-base-$arch.tar.gz
 	rm ubuntu-base-25.10-base-$arch.tar.gz
 
-	echo ""
 	echo "Ubuntu subsystem successfully downloaded in $ubuntu."
-	echo ""
 else
-	echo ""
 	echo "Base dir $base_dir for Ubuntu subsystem already exists."
-	echo ""
 fi
 exit 0
