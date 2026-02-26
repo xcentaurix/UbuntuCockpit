@@ -1,0 +1,28 @@
+#!/bin/bash
+echo mounting...
+
+base_dir=/data
+CHROOT=$base_dir/ubuntu
+
+# read installation dir
+if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+    CHROOT=$base_dir/ubuntu
+else
+    echo "Config file not found, using: $CHROOT"
+fi
+
+mount --bind /dev "$CHROOT/dev"
+mount --bind /proc "$CHROOT/proc"
+mount --bind /sys "$CHROOT/sys"
+mount --bind /run "$CHROOT/run"
+
+mkdir -p $CHROOT/root/git
+mount --bind $base_dir/git "$CHROOT/root/git"
+
+if [ ! -d "$CHROOT/dev/pts" ]; then
+	mkdir "$CHROOT/dev/pts"
+fi
+mount -t devpts devpts $CHROOT/dev/pts
+
+cp /etc/resolv.conf $CHROOT/etc/resolv.conf

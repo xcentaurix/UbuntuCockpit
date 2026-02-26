@@ -1,0 +1,5 @@
+Description: UbuntuCockpit
+Maintainer: xcentaurix
+Package: enigma2-plugin-systemplugins-ubuntucockpit
+Version: 0.7.24
+Architecture: all

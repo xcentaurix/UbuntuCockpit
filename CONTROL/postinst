@@ -1,0 +1,165 @@
+#!/bin/bash
+set -e
+
+CHROOT_DIR=/data/ubuntu
+VENV_DIR=/root/venv
+PLUGIN_DIR=/usr/lib/enigma2/python/Plugins/SystemPlugins/UbuntuCockpit
+
+# copy cfg file to /etc/enigma2
+if [ ! -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    cp $PLUGIN_DIR/cfg/ubuntucockpit.cfg /etc/enigma2/.
+fi
+
+# read installation dir
+if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+    CHROOT_DIR=$base_dir/ubuntu
+fi
+
+echo "Using CHROOT_DIR: $CHROOT_DIR"
+
+if [ -f $CHROOT_DIR/root/enter_chroot ]; then
+    # create ubuntu cmd
+    if [ ! -L /bin/ubuntu ]; then
+        ln -s $CHROOT_DIR/root/enter_chroot /bin/ubuntu
+    fi
+    echo "Ubuntu subsystem already exists in $CHROOT_DIR, skipping installation."
+    exit 0
+fi
+
+# Copy bash scripts
+cp $PLUGIN_DIR/root/*_chroot $CHROOT_DIR/root/.
+chmod +x $CHROOT_DIR/root/*_chroot
+
+cp $PLUGIN_DIR/lib/getrandom_stub.so $CHROOT_DIR/usr/lib/.
+chmod +x $CHROOT_DIR/usr/lib/getrandom_stub.so
+
+# Ensure chroot directories exist and have proper permissions
+mkdir -p $CHROOT_DIR/var/lib/dpkg/info
+mkdir -p $CHROOT_DIR/var/log/journal
+mkdir -p $CHROOT_DIR/run/systemd
+mkdir -p $CHROOT_DIR/etc/systemd/system
+
+# Disable systemd and related packages maintainer scripts BEFORE chroot and package config
+# Create systemd dummy scripts to prevent configuration issues in chroot
+for script in postinst prerm postrm preinst; do
+    echo -e '#!/bin/sh\nexit 0' > $CHROOT_DIR/var/lib/dpkg/info/systemd.$script
+    chmod +x $CHROOT_DIR/var/lib/dpkg/info/systemd.$script
+done
+
+# Also disable other systemd-related packages that might cause issues
+for pkg in systemd-dev systemd-timesyncd systemd-resolved systemd-networkd; do
+    for script in postinst prerm postrm preinst; do
+        if [ -f $CHROOT_DIR/var/lib/dpkg/info/$pkg.$script ]; then
+            echo -e '#!/bin/sh\nexit 0' > $CHROOT_DIR/var/lib/dpkg/info/$pkg.$script
+            chmod +x $CHROOT_DIR/var/lib/dpkg/info/$pkg.$script
+        fi
+    done
+done
+
+# Prevent passwd lock issues in chroot by ensuring proper file permissions
+chmod 644 $CHROOT_DIR/etc/passwd 2>/dev/null || true
+chmod 644 $CHROOT_DIR/etc/group 2>/dev/null || true
+chmod 640 $CHROOT_DIR/etc/shadow 2>/dev/null || true
+chmod 640 $CHROOT_DIR/etc/gshadow 2>/dev/null || true
+
+# Create systemd policy-rc.d to prevent service starts in chroot
+cat > $CHROOT_DIR/usr/sbin/policy-rc.d << 'EOF'
+#!/bin/sh
+exit 101
+EOF
+chmod +x $CHROOT_DIR/usr/sbin/policy-rc.d
+
+$CHROOT_DIR/root/mount_chroot
+
+echo "[*] Entering chroot and setting up Python..."
+# Set environment variables to prevent systemd issues in chroot
+export DEBIAN_FRONTEND=noninteractive
+export DEBCONF_NONINTERACTIVE_SEEN=true
+chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
+  set -e
+  echo '[*] Updating package lists...'
+  DEBIAN_FRONTEND=noninteractive apt update
+
+  echo '[*] Installing Python, venv, pip, and build dependencies...'
+  DEBIAN_FRONTEND=noninteractive apt install -y \
+    python3 \
+    python3-venv \
+    python3-pip \
+    git \
+    vim \
+    gettext \
+    binutils
+
+  echo '[*] Creating virtualenv at $VENV_DIR ...'
+  python3 -m venv $VENV_DIR
+  echo '[✓] Python venv installed: $VENV_DIR'
+
+  # .bash_profile
+  mkdir -p /root
+
+  # create .bash_profile
+  tee /root/.bash_profile > /dev/null << 'EOF'
+#!/bin/bash
+export PATH=$PATH:/root/git/tools
+export PS1='(chroot) \u@\h:\w\$ '
+source ~/venv/bin/activate
+if [ -d /root/git/dev ]; then
+    cd /root/git/dev
+else
+    cd ~
+fi
+EOF
+
+  chmod +x /root/.bash_profile
+
+  ln -s /bin/python3 /bin/python
+"
+
+# install pylint and flake8 inside the venv
+chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
+  source $VENV_DIR/bin/activate
+  pip install pylint flake8
+"
+
+# git
+mv $CHROOT_DIR/bin/git $CHROOT_DIR/bin/git_org
+
+tee $CHROOT_DIR/bin/git > /dev/null << 'EOF'
+#!/bin/bash
+# Only preload for git operations that need it
+# Skip for internal git commands
+if [[ "$1" != "configure" && "$1" != "" ]]; then
+    LD_PRELOAD=/usr/lib/getrandom_stub.so exec /bin/git_org "$@"
+else
+    exec /bin/git_org "$@"
+fi
+EOF
+
+chmod +x $CHROOT_DIR/bin/git
+
+# .ssh keys
+$CHROOT_DIR/root/copy_ssh_chroot
+
+# ubuntu cmd
+if [ -f /bin/ubuntu ]; then
+	rm /bin/ubuntu
+fi
+ln -s $CHROOT_DIR/root/enter_chroot /bin/ubuntu
+
+# install pylint and flake8
+chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
+  source ~/venv/bin/activate
+  pip install pylint
+  pip install flake8
+"
+
+echo "***********************************"
+echo "*          UbuntuCockpit          *"
+echo "*               by                *"
+echo "*           xcentaurix            *"
+echo "***********************************"
+echo ""
+echo "Plugin UbuntuCockpit installed successfully."
+echo ""
+exit 0
