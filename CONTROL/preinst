@@ -1,0 +1,25 @@
+#!/bin/sh
+
+arch=armhf
+base_dir="/data"
+
+if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+else
+    echo "Config file not found, using: $base_dir"
+fi
+
+ubuntu=$base_dir/ubuntu
+if [ ! -d $ubuntu ]; then
+	mkdir $ubuntu
+	cd $ubuntu
+	url=https://github.com/xcentaurix/UbuntuCockpit/releases/download/25.10/ubuntu-base-25.10-base-$arch.tar.gz
+	wget $url -O ubuntu-base-25.10-base-$arch.tar.gz
+	tar -xzvf ubuntu-base-25.10-base-$arch.tar.gz
+	rm ubuntu-base-25.10-base-$arch.tar.gz
+
+	echo "Ubuntu subsystem successfully downloaded in $ubuntu."
+else
+	echo "Base dir $base_dir for Ubuntu subsystem already exists."
+fi
+exit 0

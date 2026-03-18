@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ROOT=/data/ubuntu
+
+# read installation dir
+if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+    ROOT=$base_dir/ubuntu
+else
+    echo "Config file not found, using: $ROOT"
+fi
+
+chroot $ROOT env HOME=/root /bin/bash --login

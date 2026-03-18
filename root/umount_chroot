@@ -1,0 +1,18 @@
+#!/bin/bash
+echo umounting...
+CHROOT=/data/ubuntu
+
+# read installation dir
+if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
+    read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+    CHROOT=$base_dir/ubuntu
+else
+    echo "Config file not found, using: $CHROOT"
+fi
+
+umount -f "$CHROOT/dev/pts"
+umount -f "$CHROOT/dev"
+umount -f "$CHROOT/proc"
+umount -f "$CHROOT/sys"
+umount -f "$CHROOT/run"
+umount -f "$CHROOT/root/git"
