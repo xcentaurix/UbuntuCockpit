@@ -1,12 +1,16 @@
 #!/bin/sh
-ubuntu=/data/ubuntu
-if [ "$1" = "remove" ]; then
-    # Unmount all mount points under $ubuntu
-    mountpoints=$(mount | grep "$ubuntu" | awk '{print $3}' | sort -r)
-    for mnt in $mountpoints; do
-        umount "$mnt"
-    done
 
+if [ "$1" = "remove" ]; then
+    if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
+        read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+        ubuntu=$base_dir/ubuntu
+
+        # Unmount all mount points under $ubuntu
+        mountpoints=$(mount | grep "$ubuntu" | awk '{print $3}' | sort -r)
+        for mnt in $mountpoints; do
+            umount "$mnt"
+        done
+    fi
     rm -rf /usr/lib/enigma2/python/Plugins/SystemPlugins/UbuntuCockpit > /dev/null 2>&1
     echo "UbuntuCockpit plugin removed successfully."
 else
