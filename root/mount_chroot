@@ -1,7 +1,7 @@
 #!/bin/bash
 echo mounting...
 
-base_dir=/data
+base_dir=/media/hdd
 CHROOT=$base_dir/ubuntu
 
 # read installation dir

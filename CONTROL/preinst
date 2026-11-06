@@ -1,25 +1,59 @@
 #!/bin/sh
+# UbuntuCockpit preinst: downloads the Ubuntu base system into <installation folder>/ubuntu.
+#
+# The installation folder is the one line of /etc/enigma2/ubuntucockpit.cfg (default /media/hdd). Whatever goes wrong stops the
+# installation with exit 1 and leaves nothing behind. An earlier version went on after a failed "cd" and unpacked the Ubuntu
+# into the folder the installer was started in, and left an empty ubuntu folder after a failed download, which made every later
+# installation skip the download.
 
 arch=armhf
-base_dir="/data"
+release=25.10
+tag=Ubuntu-$release
+# Default installation folder. A physical disk (hard disk, USB stick) must be MOUNTED here: /media/hdd also exists as an empty folder
+# when no disk is mounted, and the Ubuntu would then be installed into the receiver's flash memory and fill it. This script cannot tell
+# the two apart. Keep the default in step with the other copies of it: CONTROL/postinst, root/*_chroot and cfg/ubuntucockpit.cfg.
+base_dir="/media/hdd"
+cfg=/etc/enigma2/ubuntucockpit.cfg
 
-if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
-    read -r base_dir < /etc/enigma2/ubuntucockpit.cfg
+if [ -f "$cfg" ]; then
+    read -r base_dir < "$cfg"
+    base_dir=$(printf '%s' "$base_dir" | tr -d '\r')
 else
     echo "Config file not found, using: $base_dir"
 fi
 
-ubuntu=$base_dir/ubuntu
-if [ ! -d $ubuntu ]; then
-	mkdir $ubuntu
-	cd $ubuntu
-	url=https://github.com/xcentaurix/UbuntuCockpit/releases/download/25.10/ubuntu-base-25.10-base-$arch.tar.gz
-	wget $url -O ubuntu-base-25.10-base-$arch.tar.gz
-	tar -xzvf ubuntu-base-25.10-base-$arch.tar.gz
-	rm ubuntu-base-25.10-base-$arch.tar.gz
-
-	echo "Ubuntu subsystem successfully downloaded in $ubuntu."
-else
-	echo "Base dir $base_dir for Ubuntu subsystem already exists."
+if [ ! -d "$base_dir" ]; then
+    echo "ERROR: The installation folder '$base_dir' does not exist. Is the disk mounted?" >&2
+    echo "Put the folder of a mounted disk, for example /media/hdd, as the only line into $cfg and install again." >&2
+    exit 1
 fi
+
+ubuntu="$base_dir/ubuntu"
+if [ -d "$ubuntu" ]; then
+    echo "Base dir $base_dir for Ubuntu subsystem already exists."
+    exit 0
+fi
+
+# the postinst and the scripts of the Ubuntu read this file: they must find the folder that is used here
+if [ ! -f "$cfg" ]; then
+    echo "$base_dir" > "$cfg"
+fi
+
+file=ubuntu-base-$release-base-$arch.tar.gz
+url=https://github.com/xcentaurix/UbuntuCockpit/releases/download/$tag/$file
+
+fail() {
+    echo "ERROR: $1" >&2
+    cd / && rm -rf "$ubuntu"
+    exit 1
+}
+
+mkdir "$ubuntu" || fail "Cannot create $ubuntu."
+cd "$ubuntu" || fail "Cannot enter $ubuntu."
+wget "$url" -O "$file" || fail "Download failed: $url"
+tar -xzf "$file" || fail "Cannot unpack $file."
+rm -f "$file"
+[ -x "$ubuntu/usr/bin/bash" ] || fail "The Ubuntu base looks incomplete: $ubuntu/usr/bin/bash is missing."
+
+echo "Ubuntu subsystem successfully downloaded in $ubuntu."
 exit 0

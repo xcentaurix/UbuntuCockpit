@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ROOT=/data/ubuntu
+ROOT=/media/hdd/ubuntu
 
 # read installation dir
 if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then

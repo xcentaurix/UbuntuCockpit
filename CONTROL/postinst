@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
-CHROOT_DIR=/data/ubuntu
+# Default installation folder, see CONTROL/preinst: a physical disk must be mounted at /media/hdd, otherwise the Ubuntu is installed
+# into the receiver's flash memory.
+CHROOT_DIR=/media/hdd/ubuntu
 VENV_DIR=/root/venv
 PLUGIN_DIR=/usr/lib/enigma2/python/Plugins/SystemPlugins/UbuntuCockpit
 

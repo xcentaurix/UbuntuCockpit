@@ -1,6 +1,6 @@
 #!/bin/bash
 echo entering chroot
-CHROOT="/data/ubuntu"
+CHROOT="/media/hdd/ubuntu"
 
 # read installation dir
 if [ -f /etc/enigma2/ubuntucockpit.cfg ]; then
