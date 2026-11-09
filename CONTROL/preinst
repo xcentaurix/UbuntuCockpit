@@ -31,6 +31,7 @@ fi
 ubuntu="$base_dir/ubuntu"
 if [ -d "$ubuntu" ]; then
     echo "Base dir $base_dir for Ubuntu subsystem already exists."
+    ln -s $ubuntu/root/enter_chroot /bin/ubuntu
     exit 0
 fi
 
