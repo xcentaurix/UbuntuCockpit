@@ -25,3 +25,6 @@ The Ubuntu subsystem is installed persistantly. So, it will survive the removal 
 
 ## Installation
 The plugin will be installed as a dependency, no explicit installation required.
+
+## Wiki
+- https://github.com/xcentaurix/UbuntuCockpit/wiki

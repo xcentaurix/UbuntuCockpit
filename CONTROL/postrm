@@ -12,6 +12,7 @@ if [ "$1" = "remove" ]; then
         done
     fi
     rm -rf /usr/lib/enigma2/python/Plugins/SystemPlugins/UbuntuCockpit > /dev/null 2>&1
+    rm -f /bin/ubuntu    # a link to the script of the plugin, which is gone now
     echo "UbuntuCockpit plugin removed successfully."
 else
     find /usr/lib/enigma2/python/Plugins/SystemPlugins/UbuntuCockpit -type f -name "*.pyc" -exec rm -f {} \; > /dev/null 2>&1

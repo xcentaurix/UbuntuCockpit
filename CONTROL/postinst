@@ -21,10 +21,6 @@ fi
 echo "Using CHROOT_DIR: $CHROOT_DIR"
 
 if [ -f $CHROOT_DIR/root/enter_chroot ]; then
-    # create ubuntu cmd
-    if [ ! -L /bin/ubuntu ]; then
-        ln -s $CHROOT_DIR/root/enter_chroot /bin/ubuntu
-    fi
     echo "Ubuntu subsystem already exists in $CHROOT_DIR, skipping installation."
     exit 0
 fi
@@ -142,12 +138,6 @@ chmod +x $CHROOT_DIR/bin/git
 
 # .ssh keys
 $CHROOT_DIR/root/copy_ssh_chroot
-
-# ubuntu cmd
-if [ -f /bin/ubuntu ]; then
-	rm /bin/ubuntu
-fi
-ln -s $CHROOT_DIR/root/enter_chroot /bin/ubuntu
 
 # install pylint and flake8
 chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
