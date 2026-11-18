@@ -20,11 +20,10 @@ See the wiki for details: https://github.com/xcentaurix/UbuntuCockpit/wiki
 ## Installation
 The Ubuntu subsystem is installed persistantly. So, it will survive the removal of the Enigma2 plugin, and will not be re-installed during plugin installation if the Ubuntu subsystem directory exists. So, the user has to remove the Ubuntu subsystem directory manually, if they want to re-install the subsystem.
 
+The scripts of the plugin (root/*_chroot) and the library git needs (getrandom_stub.so) are copied into the Ubuntu subsystem at every plugin installation, also if the subsystem exists already. So, an update of the plugin brings their new versions along.
+
 ## Limitations
 - Tested on OpenViX and OpenATV with DM900.
 
 ## Installation
 The plugin will be installed as a dependency, no explicit installation required.
-
-## Wiki
-- https://github.com/xcentaurix/UbuntuCockpit/wiki

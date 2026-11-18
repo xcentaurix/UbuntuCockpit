@@ -20,17 +20,38 @@ fi
 
 echo "Using CHROOT_DIR: $CHROOT_DIR"
 
+# Is the Ubuntu subsystem installed already? Asked before the scripts are copied: enter_chroot is one of them.
+ubuntu_installed=no
 if [ -f $CHROOT_DIR/root/enter_chroot ]; then
-    echo "Ubuntu subsystem already exists in $CHROOT_DIR, skipping installation."
-    exit 0
+    ubuntu_installed=yes
 fi
 
-# Copy bash scripts
-cp $PLUGIN_DIR/root/*_chroot $CHROOT_DIR/root/.
-chmod +x $CHROOT_DIR/root/*_chroot
+# Copy the bash scripts, the .bash_profile of the Ubuntu and the library that git needs into the Ubuntu subsystem. They belong to the
+# plugin, not to the Ubuntu: this is done at every installation, also when the Ubuntu exists already (an update of the plugin), or they
+# would stay as they were. (An own .bash_profile in the Ubuntu is replaced by that of the plugin, and kept as .bash_profile.org.)
+# Each file is copied under another name and renamed then: a chroot that is open just now (a running script, git with the library
+# preloaded) goes on with the old file instead of finding it overwritten.
+deploy_file() {   # deploy_file <source> <target>
+    cp "$1" "$2.new"
+    chmod +x "$2.new"
+    mv -f "$2.new" "$2"
+}
 
-cp $PLUGIN_DIR/lib/getrandom_stub.so $CHROOT_DIR/usr/lib/.
-chmod +x $CHROOT_DIR/usr/lib/getrandom_stub.so
+for script in $PLUGIN_DIR/root/*_chroot; do
+    deploy_file "$script" "$CHROOT_DIR/root/$(basename "$script")"
+done
+# Keep the .bash_profile that is there as .bash_profile.org, the first time only: a later installation must not replace the original
+# by the one of an earlier installation.
+if [ -f $CHROOT_DIR/root/.bash_profile ] && [ ! -e $CHROOT_DIR/root/.bash_profile.org ]; then
+    mv $CHROOT_DIR/root/.bash_profile $CHROOT_DIR/root/.bash_profile.org
+fi
+deploy_file $PLUGIN_DIR/root/.bash_profile $CHROOT_DIR/root/.bash_profile
+deploy_file $PLUGIN_DIR/lib/getrandom_stub.so $CHROOT_DIR/usr/lib/getrandom_stub.so
+
+if [ "$ubuntu_installed" = yes ]; then
+    echo "Ubuntu subsystem already exists in $CHROOT_DIR, scripts updated, skipping installation."
+    exit 0
+fi
 
 # Ensure chroot directories exist and have proper permissions
 mkdir -p $CHROOT_DIR/var/lib/dpkg/info
@@ -93,23 +114,8 @@ chroot "$CHROOT_DIR" env HOME=/root /bin/bash -c "
   python3 -m venv $VENV_DIR
   echo '[✓] Python venv installed: $VENV_DIR'
 
-  # .bash_profile
+  # /root/.bash_profile is the one of the plugin, copied above
   mkdir -p /root
-
-  # create .bash_profile
-  tee /root/.bash_profile > /dev/null << 'EOF'
-#!/bin/bash
-export PATH=$PATH:/root/git/tools
-export PS1='(chroot) \u@\h:\w\$ '
-source ~/venv/bin/activate
-if [ -d /root/git/dev ]; then
-    cd /root/git/dev
-else
-    cd ~
-fi
-EOF
-
-  chmod +x /root/.bash_profile
 
   ln -s /bin/python3 /bin/python
 "
