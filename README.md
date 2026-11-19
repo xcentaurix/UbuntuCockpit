@@ -27,3 +27,6 @@ The scripts of the plugin (root/*_chroot) and the library git needs (getrandom_s
 
 ## Installation
 The plugin will be installed as a dependency, no explicit installation required.
+
+## Wiki
+- https://github.com/xcentaurix/UbuntuCockpit/wiki

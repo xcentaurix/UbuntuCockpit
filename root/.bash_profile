@@ -9,10 +9,6 @@ if [ -d /root/venv/bin ]; then
     source ~/venv/bin/activate
     cd /root/git/dev
 else
-    cd ~
-    if [ ! -e ./git ]; then
-        ln -s ~/git
-    fi
     cd /
     if [ ! -e /git ]; then
         ln -s ~/git
